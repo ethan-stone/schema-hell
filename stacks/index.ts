@@ -1,4 +1,4 @@
-import { MyStack } from "./MyStack";
+import { SchemaRegistryStack } from "./SchemaRegistryStack";
 import { App } from "@serverless-stack/resources";
 
 export default function (app: App) {
@@ -6,8 +6,8 @@ export default function (app: App) {
     runtime: "nodejs16.x",
     srcPath: "services",
     bundle: {
-      format: "esm",
-    },
+      format: "esm"
+    }
   });
-  app.stack(MyStack);
+  app.stack(SchemaRegistryStack);
 }
