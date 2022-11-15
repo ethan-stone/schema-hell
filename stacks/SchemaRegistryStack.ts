@@ -1,26 +1,20 @@
 import { StackContext } from "@serverless-stack/resources";
 import * as aws_glue from "aws-cdk-lib/aws-glue";
 import * as aws_iam from "aws-cdk-lib/aws-iam";
+import { env } from "./consts";
 
 export function SchemaRegistryStack({ stack }: StackContext) {
-  const webBackendUser = new aws_iam.User(
+  const webBackendUser = aws_iam.User.fromUserArn(
     stack,
-    "WebBackendSchemaRegistryUser"
-  );
-
-  const webBackendAccessKey = new aws_iam.AccessKey(
-    stack,
-    "WebBackendSchemaRegistryAccessKey",
-    {
-      user: webBackendUser
-    }
+    "WebBackendIAMUser",
+    env.AWS_IAM_WEB_BACKEND_USER_ARN
   );
 
   const schemaRegistry = new aws_glue.CfnRegistry(stack, "SchemaRegistry", {
     name: "SchemaHell"
   });
 
-  webBackendUser.addToPolicy(
+  webBackendUser.addToPrincipalPolicy(
     new aws_iam.PolicyStatement({
       actions: [
         "glue:CreateSchema",
@@ -38,7 +32,7 @@ export function SchemaRegistryStack({ stack }: StackContext) {
     })
   );
 
-  webBackendUser.addToPolicy(
+  webBackendUser.addToPrincipalPolicy(
     new aws_iam.PolicyStatement({
       actions: ["glue:CheckSchemaVersionValidity"],
       resources: ["*"]
