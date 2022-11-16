@@ -1,7 +1,7 @@
-import { Config, StackContext, Stack } from "@serverless-stack/resources";
+import { StackContext, Stack } from "@serverless-stack/resources";
 import * as aws_glue from "aws-cdk-lib/aws-glue";
 import * as aws_iam from "aws-cdk-lib/aws-iam";
-import { env } from "./consts";
+import { env } from "./env";
 
 type Env = {
   AWS_IAM_WEB_BACKEND_USER_ARN: string;
