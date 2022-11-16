@@ -1,13 +1,24 @@
-import { StackContext } from "@serverless-stack/resources";
+import { Config, StackContext, Stack } from "@serverless-stack/resources";
 import * as aws_glue from "aws-cdk-lib/aws-glue";
 import * as aws_iam from "aws-cdk-lib/aws-iam";
 import { env } from "./consts";
+
+type Env = {
+  AWS_IAM_WEB_BACKEND_USER_ARN: string;
+};
+
+function getEnv(stack: Stack): Env {
+  if (stack.stage !== "prod" && stack.stage !== "dev") {
+    return process.env as Env;
+  }
+  return env[stack.stage];
+}
 
 export function SchemaRegistryStack({ stack }: StackContext) {
   const webBackendUser = aws_iam.User.fromUserArn(
     stack,
     "WebBackendIAMUser",
-    env.AWS_IAM_WEB_BACKEND_USER_ARN
+    getEnv(stack).AWS_IAM_WEB_BACKEND_USER_ARN
   );
 
   const schemaRegistry = new aws_glue.CfnRegistry(stack, "SchemaRegistry", {
