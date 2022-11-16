@@ -22,7 +22,7 @@ export function SchemaRegistryStack({ stack }: StackContext) {
   );
 
   const schemaRegistry = new aws_glue.CfnRegistry(stack, "SchemaRegistry", {
-    name: "SchemaHell"
+    name: `${stack.stage}-SchemaHell`
   });
 
   webBackendUser.addToPrincipalPolicy(
