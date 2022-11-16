@@ -8,7 +8,7 @@ type Env = {
 };
 
 function getEnv(stack: Stack): Env {
-  if (stack.stage !== "prod" && stack.stage !== "dev") {
+  if (stack.stage !== "prod" && stack.stage !== "staging") {
     return process.env as Env;
   }
   return env[stack.stage];
