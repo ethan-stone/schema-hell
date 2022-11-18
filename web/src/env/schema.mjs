@@ -7,8 +7,11 @@ import { z } from "zod";
  */
 export const serverSchema = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]),
-  AWS_WEB_BACKEND_ACCESS_KEY_ID: z.string().min(1),
-  AWS_WEB_BACKEND_SECRET_ACCESS_KEY: z.string().min(1),
+  WEB_BACKEND_AWS_ACCESS_KEY_ID: z.string().min(1),
+  WEB_BACKEND_AWS_SECRET_ACCESS_KEY: z.string().min(1),
+  WEB_BACKEND_AWS_REGION: z.string().min(1),
+  UPSTASH_REDIS_REST_URL: z.string().min(1),
+  UPSTASH_REDIS_REST_TOKEN: z.string().min(1),
 });
 
 /**

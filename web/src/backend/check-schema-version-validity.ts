@@ -1,13 +1,18 @@
+import { schemaRegistry } from "../utils/schemaRegistry";
+
 type Args = {
-  format: "JSON" | "AVRO" | "PROTOBUFF";
+  format: "JSON" | "AVRO" | "PROTOBUF";
   definition: string;
 };
 
 type Result = {
-  isValid: true;
+  isValid: boolean;
+  error?: string;
 };
 
 export async function checkSchemaVersionValidity(args: Args): Promise<Result> {
-  console.log(args);
-  return { isValid: true };
+  return await schemaRegistry.checkSchemaVersionValidity({
+    format: args.format,
+    definition: args.definition,
+  });
 }
