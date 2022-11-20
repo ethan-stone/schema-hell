@@ -12,6 +12,7 @@ export const serverSchema = z.object({
   WEB_BACKEND_AWS_REGION: z.string().min(1),
   UPSTASH_REDIS_REST_URL: z.string().min(1),
   UPSTASH_REDIS_REST_TOKEN: z.string().min(1),
+  SCHEMA_REGISTRY_NAME: z.string().min(1),
 });
 
 /**

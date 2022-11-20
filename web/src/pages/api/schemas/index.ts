@@ -1,28 +1,38 @@
 import type { NextApiResponse } from "next";
-import { z } from "zod";
 import {
   withLogger,
   type NextApiRequestWithLogger,
-} from "../../utils/logging/backend-logger";
+} from "../../../utils/logging/backend-logger";
+import { z } from "zod";
 import type {
   InternalErrorRes,
   InvalidRequestRes,
   ValidationErrorRes,
-} from "../../utils/res-errors";
-import { schemaRegistry } from "../../utils/schema-registry";
+} from "../../../utils/res-errors";
+import { schemaRegistry } from "../../../utils/schema-registry";
 
 const ReqBody = z.object({
   format: z.enum(["JSON", "AVRO", "PROTOBUF"]),
   definition: z.string(),
+  compatibility: z.enum([
+    "NONE",
+    "DISABLED",
+    "BACKWARD",
+    "BACKWARD_ALL",
+    "FORWARD",
+    "FORWARD_ALL",
+    "FULL",
+    "FULL_ALL",
+  ]),
 });
 
 type ReqBody = z.infer<typeof ReqBody>;
-
 type ValidationErrors = z.inferFormattedError<typeof ReqBody>;
 
 type ResBody =
   | {
-      isValid: boolean;
+      name: string;
+      initialVersionId: string;
     }
   | ValidationErrorRes<ValidationErrors>
   | InvalidRequestRes
@@ -36,7 +46,6 @@ async function handler(
 ) {
   const { method, log, body } = req;
 
-  // validate request method
   if (!supportedMethods.includes(method || "")) {
     log.info(`Request made with unsupported method: ${method}`);
     return res.status(400).json({
@@ -44,27 +53,19 @@ async function handler(
       message: `Request method ${method} is not supported`,
     });
   }
-
-  // validate request body
   const parsedBody = await ReqBody.spa(body);
   if (!parsedBody.success) {
     log.info(`Request body validation failed`);
     return res.status(400).json({
       code: "VALIDATION_ERROR",
-      message: "Provided an invalid format and/or definition",
+      message: "Provided an invalid format, definition and/or compatibility",
       errors: parsedBody.error.format(),
     });
   }
   log.info(`Request body validation passed`);
-
-  // check if schema version is valid
-  const result = await schemaRegistry.checkSchemaVersionValidity(
-    parsedBody.data
-  );
-
-  // return result
+  const result = await schemaRegistry.createSchema(parsedBody.data);
   if (!result.success) {
-    log.info(`Schema version validity check failed`, {
+    log.error(`New schema failed to be created`, {
       error: result.error,
     });
     return res.status(500).json({
@@ -72,7 +73,7 @@ async function handler(
       message: "Unable to check schema version validity",
     });
   }
-  log.info(`Schema version validity check ran`);
+  log.info(`Schema with name: ${result.data.name} created`);
   return res.status(200).json(result.data);
 }
 
