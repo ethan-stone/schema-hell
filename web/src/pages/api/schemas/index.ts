@@ -26,10 +26,10 @@ const ReqBody = z.object({
   ]),
 });
 
-type ReqBody = z.infer<typeof ReqBody>;
+export type ReqBody = z.infer<typeof ReqBody>;
 type ValidationErrors = z.inferFormattedError<typeof ReqBody>;
 
-type ResBody =
+export type ResBody =
   | {
       name: string;
       initialVersionId: string;
