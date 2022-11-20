@@ -1,4 +1,4 @@
-import { schemaRegistry } from "../utils/schemaRegistry";
+import { schemaRegistry } from "../utils/schema-registry";
 
 type Args = {
   format: "JSON" | "AVRO" | "PROTOBUF";
