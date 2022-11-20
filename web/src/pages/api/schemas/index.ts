@@ -1,6 +1,6 @@
 import type { NextApiResponse } from "next";
 import {
-  withLogger,
+  // withLogger,
   type NextApiRequestWithLogger,
 } from "../../../utils/logging/backend-logger";
 import { z } from "zod";
@@ -40,7 +40,7 @@ type ResBody =
 
 const supportedMethods = ["POST"];
 
-async function handler(
+export default async function handler(
   req: NextApiRequestWithLogger,
   res: NextApiResponse<ResBody>
 ) {
@@ -84,4 +84,4 @@ async function handler(
   return res.status(200).json(result.data);
 }
 
-export default withLogger(handler);
+// export default withLogger(handler);
