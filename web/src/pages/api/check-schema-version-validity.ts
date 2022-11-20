@@ -39,25 +39,27 @@ async function handler(
   req: NextApiRequestWithLogger,
   res: NextApiResponse<ResBody>
 ) {
-  if (!supportedMethods.includes(req.method || "")) {
-    req.log.info(`Request made with invalid method: ${req.method}`);
+  const { method, log, body } = req;
+
+  if (!supportedMethods.includes(method || "")) {
+    log.info(`Request made with invalid method: ${method}`);
     return res.status(400).json({
       code: "INVALID_REQUEST",
-      message: `Request method ${req.method} is not supported`,
+      message: `Request method ${method} is not supported`,
     });
   }
-  const parsedBody = await ReqBody.spa(req.body);
+  const parsedBody = await ReqBody.spa(body);
   if (!parsedBody.success) {
-    req.log.info(`Request body validation failed`);
+    log.info(`Request body validation failed`);
     return res.status(400).json({
       code: "VALIDATION_ERROR",
       message: "Provided an invalid format and/or definition",
       errors: parsedBody.error.format(),
     });
   }
-  req.log.info(`Request body validation passed`);
+  log.info(`Request body validation passed`);
   const result = await checkSchemaVersionValidity(parsedBody.data);
-  req.log.info(`Schema version validty check passed`);
+  log.info(`Schema version validty check passed`);
   return res.status(200).json(result);
 }
 
