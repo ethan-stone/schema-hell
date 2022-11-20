@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { z } from "zod";
 import { checkSchemaVersionValidity } from "../../backend/check-schema-version-validity";
-import { logger } from "../../utils/logger";
+import { log } from "next-axiom";
 
 const ReqBody = z.object({
   format: z.enum(["JSON", "AVRO", "PROTOBUF"]),
@@ -37,7 +37,7 @@ export default async function handler(
   res: NextApiResponse<ResBody>
 ) {
   if (!supportedMethods.includes(req.method || "")) {
-    logger.info(`Request made with invalid method: ${req.method}`, {
+    log.info(`Request made with invalid method: ${req.method}`, {
       request: req,
     });
     return res.status(400).json({
@@ -47,7 +47,7 @@ export default async function handler(
   }
   const parsedBody = await ReqBody.spa(req.body);
   if (!parsedBody.success) {
-    logger.info(`Request body validation failed`, {
+    log.info(`Request body validation failed`, {
       request: req,
     });
     return res.status(400).json({
@@ -56,11 +56,11 @@ export default async function handler(
       errors: parsedBody.error.format(),
     });
   }
-  logger.info(`Request body validation passed`, {
+  log.info(`Request body validation passed`, {
     request: req,
   });
   const result = await checkSchemaVersionValidity(parsedBody.data);
-  logger.info(`Schema version validty check passed`, {
+  log.info(`Schema version validty check passed`, {
     request: req,
   });
   return res.status(200).json(result);

@@ -23,8 +23,6 @@ export default async function middleware(
 
   event.waitUntil(pending);
 
-  console.log("success?", success);
-
   const res = success
     ? NextResponse.next()
     : NextResponse.rewrite(new URL("/api/blocked", request.url));
