@@ -1,9 +1,9 @@
-import type { NextFetchEvent } from "next/server";
+import type { NextFetchEvent, NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { Ratelimit } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
-import type { NextRequestWithLogger } from "./utils/logging/middleware-logger";
-import { withLogger } from "./utils/logging/middleware-logger";
+// import type { NextRequestWithLogger } from "./utils/logging/middleware-logger";
+// import { withLogger } from "./utils/logging/middleware-logger";
 
 const ratelimit = new Ratelimit({
   redis: new Redis({
@@ -13,11 +13,11 @@ const ratelimit = new Ratelimit({
   limiter: Ratelimit.fixedWindow(10, "10 s"),
 });
 
-async function middleware(
-  req: NextRequestWithLogger,
+export default async function middleware(
+  req: NextRequest,
   event: NextFetchEvent
 ): Promise<Response | undefined> {
-  const { log } = req;
+  // const { log } = req;
 
   const ip = req.ip ?? "127.0.0.1";
 
@@ -25,12 +25,12 @@ async function middleware(
     `mw_${ip}`
   );
 
-  if (!success)
-    log.error(`RateLimit exceeded for IP: ${req.ip}`, {
-      error: {
-        code: "RATELIMIT_EXCEEDED",
-      },
-    });
+  // if (!success)
+  // log.error(`RateLimit exceeded for IP: ${req.ip}`, {
+  //   error: {
+  //     code: "RATELIMIT_EXCEEDED",
+  //   },
+  // });
 
   event.waitUntil(pending);
 
@@ -48,4 +48,4 @@ export const config = {
   matcher: "/api/:path*",
 };
 
-export default withLogger(middleware);
+// export default withLogger(middleware);
