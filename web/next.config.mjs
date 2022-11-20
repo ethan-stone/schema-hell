@@ -5,6 +5,8 @@
  */
 !process.env.SKIP_ENV_VALIDATION && (await import("./src/env/server.mjs"));
 
+import { withAxiom } from "next-axiom";
+
 /** @type {import("next").NextConfig} */
 const config = {
   reactStrictMode: true,
@@ -14,4 +16,4 @@ const config = {
     defaultLocale: "en",
   },
 };
-export default config;
+export default withAxiom(config);
