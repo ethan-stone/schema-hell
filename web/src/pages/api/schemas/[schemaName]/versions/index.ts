@@ -1,28 +1,31 @@
 import type { NextApiResponse } from "next";
 import { z } from "zod";
-import {
-  withLogger,
-  type NextApiRequestWithLogger,
-} from "../../utils/logging/backend-logger";
+import { withLogger } from "../../../../../utils/logging/backend-logger";
+import type { NextApiRequestWithLogger } from "../../../../../utils/logging/backend-logger";
 import type {
   InternalErrorRes,
   InvalidRequestRes,
   ValidationErrorRes,
-} from "../../utils/res-errors";
-import { schemaRegistry } from "../../utils/schema-registry";
+} from "../../../../../utils/res-errors";
+import { schemaRegistry } from "../../../../../utils/schema-registry";
+import { env } from "../../../../../env/server.mjs";
+
+type Query = {
+  schemaName: string;
+};
 
 const ReqBody = z.object({
-  format: z.enum(["JSON", "AVRO", "PROTOBUF"]),
   definition: z.string(),
 });
 
 type ReqBody = z.infer<typeof ReqBody>;
-
 type ValidationErrors = z.inferFormattedError<typeof ReqBody>;
 
 type ResBody =
   | {
-      isValid: boolean;
+      versionId: string;
+      versionNumber: number;
+      status: "AVAILABLE" | "DELETING" | "PENDING" | "FAILURE" | string;
     }
   | ValidationErrorRes<ValidationErrors>
   | InvalidRequestRes
@@ -34,7 +37,8 @@ async function handler(
   req: NextApiRequestWithLogger,
   res: NextApiResponse<ResBody>
 ) {
-  const { method, log, body } = req;
+  const { method, log, body, query } = req;
+  const { schemaName } = query as Query;
 
   // validate request method
   if (!supportedMethods.includes(method || "")) {
@@ -51,28 +55,30 @@ async function handler(
     log.info(`Request body validation failed`);
     return res.status(400).json({
       code: "VALIDATION_ERROR",
-      message: "Provided an invalid format and/or definition",
+      message: "Provided an invalid format, definition and/or compatibility",
       errors: parsedBody.error.format(),
     });
   }
   log.info(`Request body validation passed`);
 
-  // check if schema version is valid
-  const result = await schemaRegistry.checkSchemaVersionValidity(
-    parsedBody.data
-  );
-
-  // return result
+  // register schema version
+  const result = await schemaRegistry.registerSchemaVersion({
+    definition: parsedBody.data.definition,
+    registryName: env.SCHEMA_REGISTRY_NAME,
+    schemaName,
+  });
   if (!result.success) {
-    log.error(`Schema version validity check failed`, {
+    log.error(`Failed to register schema version`, {
       reason: result.reason,
     });
     return res.status(500).json({
       code: "INTERNAL_ERROR",
-      message: "Unable to check schema version validity",
+      message: "Unable to register schema version",
     });
   }
-  log.info(`Schema version validity check ran`);
+
+  // return result
+  log.info(`Schema version with ID: ${result.data.versionId} created`);
   return res.status(200).json(result.data);
 }
 

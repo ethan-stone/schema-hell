@@ -71,11 +71,11 @@ async function handler(
   const result = await schemaRegistry.createSchema(parsedBody.data);
   if (!result.success) {
     log.error(`New schema failed to be created`, {
-      error: result.error,
+      reason: result.reason,
     });
     return res.status(500).json({
       code: "INTERNAL_ERROR",
-      message: "Unable to check schema version validity",
+      message: "Unable to create schema",
     });
   }
 
