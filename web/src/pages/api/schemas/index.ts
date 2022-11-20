@@ -46,6 +46,7 @@ async function handler(
 ) {
   const { method, log, body } = req;
 
+  // validate request method
   if (!supportedMethods.includes(method || "")) {
     log.info(`Request made with unsupported method: ${method}`);
     return res.status(400).json({
@@ -53,6 +54,8 @@ async function handler(
       message: `Request method ${method} is not supported`,
     });
   }
+
+  // validate request body
   const parsedBody = await ReqBody.spa(body);
   if (!parsedBody.success) {
     log.info(`Request body validation failed`);
@@ -63,6 +66,8 @@ async function handler(
     });
   }
   log.info(`Request body validation passed`);
+
+  // create schema
   const result = await schemaRegistry.createSchema(parsedBody.data);
   if (!result.success) {
     log.error(`New schema failed to be created`, {
@@ -73,6 +78,8 @@ async function handler(
       message: "Unable to check schema version validity",
     });
   }
+
+  // return result
   log.info(`Schema with name: ${result.data.name} created`);
   return res.status(200).json(result.data);
 }
