@@ -16,11 +16,11 @@ const ReqBody = z.object({
   definition: z.string(),
 });
 
-type ReqBody = z.infer<typeof ReqBody>;
+export type ReqBody = z.infer<typeof ReqBody>;
 
 type ValidationErrors = z.inferFormattedError<typeof ReqBody>;
 
-type ResBody =
+export type ResBody =
   | {
       isValid: boolean;
     }

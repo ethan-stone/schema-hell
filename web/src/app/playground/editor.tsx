@@ -1,10 +1,18 @@
 "use client";
 
 import { useMutation } from "@tanstack/react-query";
-import { Fragment, useState } from "react";
-import type { ReqBody, ResBody } from "../../pages/api/schemas/index";
+import { Fragment, useMemo, useState } from "react";
+import type {
+  ReqBody as CreateSchemaReqBody,
+  ResBody as CreateSchemaResBody,
+} from "../../pages/api/schemas/index";
+import type {
+  ReqBody as CheckSchemaVersionValidityReqBody,
+  ResBody as CheckSchemaVersionValidityResBody,
+} from "../../pages/api/check-schema-version-validity";
 import { Listbox, Transition } from "@headlessui/react";
 import { CheckIcon, ChevronUpDownIcon } from "@heroicons/react/20/solid";
+import { debounce } from "../../utils/debounce";
 
 type SelectProps<T> = {
   data: T[];
@@ -151,20 +159,40 @@ export default function Editor() {
   );
   const [definition, setDefinition] = useState<string>("");
 
-  const { mutate, isLoading } = useMutation({
-    mutationFn: async (newSchema: ReqBody) => {
-      const res = await fetch("/api/schemas", {
+  const { mutate: createSchema, isLoading: createSchemaIsLoading } =
+    useMutation({
+      mutationFn: async (args: CreateSchemaReqBody) => {
+        const res = await fetch("/api/schemas", {
+          method: "POST",
+          body: JSON.stringify(args),
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+        const json = await res.json();
+        return json as CreateSchemaResBody;
+      },
+    });
+
+  const { mutate: checkSchemaVersionValidity, reset } = useMutation({
+    mutationFn: async (args: CheckSchemaVersionValidityReqBody) => {
+      const res = await fetch("/api/check-schema-version-validity", {
         method: "POST",
-        body: JSON.stringify(newSchema),
+        body: JSON.stringify(args),
         headers: {
           "Content-Type": "application/json",
         },
       });
       const json = await res.json();
       console.log(json);
-      return json as ResBody;
+      return json as CheckSchemaVersionValidityResBody;
     },
   });
+
+  const checkSchemaVersionValidityDebounce = useMemo(
+    () => debounce(checkSchemaVersionValidity, 500),
+    [checkSchemaVersionValidity]
+  );
 
   return (
     <div className="flex flex-grow flex-col items-center justify-center">
@@ -176,7 +204,13 @@ export default function Editor() {
             displayName: name,
           })}
           selected={selectedFormat}
-          onChange={setSelectedFormat}
+          onChange={({ id, name }) => {
+            setSelectedFormat({ id, name });
+            checkSchemaVersionValidityDebounce({
+              format: name,
+              definition: definition,
+            });
+          }}
         />
         <Select
           data={compatibilities}
@@ -188,7 +222,13 @@ export default function Editor() {
           onChange={setSelectedCompatibility}
         />
         <textarea
-          onChange={(event) => setDefinition(event.target.value)}
+          onChange={(event) => {
+            setDefinition(event.target.value);
+            checkSchemaVersionValidityDebounce({
+              format: selectedFormat.name,
+              definition: event.target.value,
+            });
+          }}
           value={definition}
           className="mt-1 w-full rounded-lg p-2 shadow-md focus:outline-none"
         />
@@ -196,14 +236,14 @@ export default function Editor() {
           type="button"
           className="mt-1 w-full rounded-lg bg-neutral-900 p-2 text-neutral-200 shadow-md focus:outline-none"
           onClick={() => {
-            mutate({
+            createSchema({
               format: selectedFormat.name,
               definition,
               compatibility: selectedCompatibility.name,
             });
           }}
         >
-          {isLoading ? (
+          {createSchemaIsLoading ? (
             <div className="flex flex-row items-center justify-center">
               <Spinner />
               Creating...
