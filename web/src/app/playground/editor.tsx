@@ -3,16 +3,16 @@
 import { useMutation } from "@tanstack/react-query";
 import { Fragment, useMemo, useState } from "react";
 import type {
-  ReqBody as CreateSchemaReqBody,
-  ResBody as CreateSchemaResBody,
-} from "../../pages/api/schemas/index";
-import type {
-  ReqBody as CheckSchemaVersionValidityReqBody,
-  ResBody as CheckSchemaVersionValidityResBody,
-} from "../../pages/api/check-schema-version-validity";
+  ReqBody as RegisterSchemaVersionReqBody,
+  ResBody as RegisterSchemaVersionResBody,
+  Query as RegisterSchemaVersionQuery,
+} from "../../pages/api/schemas/[schemaName]/versions/index";
 import { Listbox, Transition } from "@headlessui/react";
 import { CheckIcon, ChevronUpDownIcon } from "@heroicons/react/20/solid";
 import { debounce } from "../../utils/debounce";
+import { useCreateSchema } from "../../api/create-schema";
+import { useCheckSchemaVersionValidity } from "../../api/check-schema-version-validity";
+import { useRegisterSchemaVersion } from "../../api/register-schema-version";
 
 type SelectProps<T> = {
   data: T[];
@@ -158,36 +158,21 @@ export default function Editor() {
     }
   );
   const [definition, setDefinition] = useState<string>("");
+  const [currentSchemaName, setCurrentSchemaName] = useState<string>("");
 
   const { mutate: createSchema, isLoading: createSchemaIsLoading } =
-    useMutation({
-      mutationFn: async (args: CreateSchemaReqBody) => {
-        const res = await fetch("/api/schemas", {
-          method: "POST",
-          body: JSON.stringify(args),
-          headers: {
-            "Content-Type": "application/json",
-          },
-        });
-        const json = await res.json();
-        return json as CreateSchemaResBody;
+    useCreateSchema({
+      onSuccess: (data) => {
+        if (data.ok) {
+          setCurrentSchemaName(data.data.name);
+        }
       },
     });
 
-  const { mutate: checkSchemaVersionValidity, reset } = useMutation({
-    mutationFn: async (args: CheckSchemaVersionValidityReqBody) => {
-      const res = await fetch("/api/check-schema-version-validity", {
-        method: "POST",
-        body: JSON.stringify(args),
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-      const json = await res.json();
-      console.log(json);
-      return json as CheckSchemaVersionValidityResBody;
-    },
-  });
+  const { mutate: registerSchemaVersion } = useRegisterSchemaVersion();
+
+  const { mutate: checkSchemaVersionValidity } =
+    useCheckSchemaVersionValidity();
 
   const checkSchemaVersionValidityDebounce = useMemo(
     () => debounce(checkSchemaVersionValidity, 500),
@@ -232,6 +217,26 @@ export default function Editor() {
           value={definition}
           className="mt-1 w-full rounded-lg p-2 shadow-md focus:outline-none"
         />
+        <button
+          type="button"
+          className="mt-1 w-full rounded-lg bg-neutral-900 p-2 text-neutral-200 shadow-md focus:outline-none"
+          onClick={() => {
+            createSchema({
+              format: selectedFormat.name,
+              definition,
+              compatibility: selectedCompatibility.name,
+            });
+          }}
+        >
+          {createSchemaIsLoading ? (
+            <div className="flex flex-row items-center justify-center">
+              <Spinner />
+              Creating...
+            </div>
+          ) : (
+            "Create Schema"
+          )}
+        </button>
         <button
           type="button"
           className="mt-1 w-full rounded-lg bg-neutral-900 p-2 text-neutral-200 shadow-md focus:outline-none"

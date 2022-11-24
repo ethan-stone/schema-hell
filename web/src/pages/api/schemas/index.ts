@@ -29,14 +29,17 @@ const ReqBody = z.object({
 export type ReqBody = z.infer<typeof ReqBody>;
 type ValidationErrors = z.inferFormattedError<typeof ReqBody>;
 
-export type ResBody =
-  | {
-      name: string;
-      initialVersionId: string;
-    }
+export type SuccessResBody = {
+  name: string;
+  initialVersionId: string;
+};
+
+export type ErrorResBody =
   | ValidationErrorRes<ValidationErrors>
   | InvalidRequestRes
   | InternalErrorRes;
+
+export type ResBody = SuccessResBody | ErrorResBody;
 
 const supportedMethods = ["POST"];
 

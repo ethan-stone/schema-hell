@@ -20,13 +20,13 @@ export type ReqBody = z.infer<typeof ReqBody>;
 
 type ValidationErrors = z.inferFormattedError<typeof ReqBody>;
 
-export type ResBody =
-  | {
-      isValid: boolean;
-    }
+export type SuccessResBody = { isValid: boolean };
+export type ErrorResBody =
   | ValidationErrorRes<ValidationErrors>
   | InvalidRequestRes
   | InternalErrorRes;
+
+export type ResBody = SuccessResBody | ErrorResBody;
 
 const supportedMethods = ["POST"];
 

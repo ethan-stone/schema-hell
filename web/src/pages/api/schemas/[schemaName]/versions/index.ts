@@ -10,7 +10,7 @@ import type {
 import { schemaRegistry } from "../../../../../utils/schema-registry";
 import { env } from "../../../../../env/server.mjs";
 
-type Query = {
+export type Query = {
   schemaName: string;
 };
 
@@ -18,18 +18,21 @@ const ReqBody = z.object({
   definition: z.string(),
 });
 
-type ReqBody = z.infer<typeof ReqBody>;
+export type ReqBody = z.infer<typeof ReqBody>;
 type ValidationErrors = z.inferFormattedError<typeof ReqBody>;
 
-type ResBody =
-  | {
-      versionId: string;
-      versionNumber: number;
-      status: "AVAILABLE" | "DELETING" | "PENDING" | "FAILURE" | string;
-    }
+export type SuccessResBody = {
+  versionId: string;
+  versionNumber: number;
+  status: "AVAILABLE" | "DELETING" | "PENDING" | "FAILURE" | string;
+};
+
+export type ErrorResBody =
   | ValidationErrorRes<ValidationErrors>
   | InvalidRequestRes
   | InternalErrorRes;
+
+export type ResBody = SuccessResBody | ErrorResBody;
 
 const supportedMethods = ["POST"];
 
