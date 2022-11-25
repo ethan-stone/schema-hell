@@ -222,18 +222,8 @@ export default function Editor() {
   }
 
   return (
-    <div className="flex flex-grow flex-row justify-between">
-      <div className="w-2/5">
-        <CMEditor
-          doc={currentDefinition}
-          onChange={(update) => {
-            setCurrentDefinition(update.state.doc.toJSON().join("\n"));
-            const diagnostic = linter(update.view);
-            console.log(diagnostic);
-          }}
-        />
-      </div>
-      <div className="w-1/5">
+    <div className="flex h-full max-h-screen flex-col items-stretch">
+      <div className="h-1/6 w-1/5">
         <Select
           data={formats}
           mapOptionDisplayName={({ id, name }) => ({
@@ -259,8 +249,19 @@ export default function Editor() {
           onChange={setSelectedCompatibility}
         />
       </div>
-      <div className="w-2/5">
+      <div className="flex h-5/6 flex-row">
         <CMEditor
+          className="w-5/12"
+          doc={currentDefinition}
+          onChange={(update) => {
+            setCurrentDefinition(update.state.doc.toJSON().join("\n"));
+            const diagnostic = linter(update.view);
+            console.log(diagnostic);
+          }}
+        />
+        <div className="w-2/12" />
+        <CMEditor
+          className="w-5/12"
           doc={nextDefinition}
           onChange={(update) => {
             setNextDefinition(update.state.doc.toJSON().join("\n"));

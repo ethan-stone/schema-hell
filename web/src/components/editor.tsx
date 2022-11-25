@@ -25,9 +25,6 @@ export const CMEditor: React.FC<Props> = (props) => {
   }, [editorView]);
 
   return (
-    <div
-      className={`flex max-h-screen min-h-screen flex-grow bg-neutral-800 ${props.className}`}
-      ref={refContainer}
-    />
+    <div className={`bg-neutral-800 ${props.className}`} ref={refContainer} />
   );
 };
