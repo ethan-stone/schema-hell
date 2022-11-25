@@ -26,7 +26,7 @@ export const CMEditor: React.FC<Props> = (props) => {
 
   return (
     <div
-      className={`flex min-w-full flex-grow rounded bg-neutral-900 p-2 ${props.className}`}
+      className={`flex max-h-screen min-h-screen flex-grow bg-neutral-800 ${props.className}`}
       ref={refContainer}
     />
   );

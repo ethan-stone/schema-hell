@@ -11,8 +11,8 @@ import { oneDarkHighlightStyle } from "./one-dark-highlight";
 
 const cursor = "#ffffff";
 const background = "transparent";
-const darkBackground = "#171717";
-const highlightBackground = "#171717";
+const darkBackground = "#262626";
+const highlightBackground = "#262626";
 const tooltipBackground = "#353a42";
 const selection = "#404040";
 const ivory = "#abb2bf";
@@ -27,7 +27,12 @@ const theme = EditorView.theme(
       fontWeight: "bold",
       fontSize: "1rem",
       flex: 1,
+      flexGrow: 1,
+      maxHeight: "100vh",
+      maxWidth: "100%",
+      minHeight: "100vh",
     },
+    ".cm-scroller": { minHeight: "100vh" },
     ".cm-content": { caretColor: cursor },
     "&.cm-editor.cm-focused": {
       outline: "none",
@@ -53,7 +58,7 @@ const theme = EditorView.theme(
     },
 
     ".cm-gutters": {
-      backgroundColor: background,
+      backgroundColor: darkBackground,
       color: stone,
       border: "none",
     },
@@ -114,7 +119,6 @@ export const useCodeMirror = <T extends Element>(
         theme,
         basicSetup,
         syntaxHighlighting(oneDarkHighlightStyle),
-        EditorView.lineWrapping,
         EditorView.updateListener.of((update) => {
           if (update.changes) [onChange && onChange(update)];
         }),

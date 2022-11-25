@@ -3,7 +3,7 @@ import Editor from "./editor";
 
 export default function Page() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-neutral-300">
+    <div className="flex min-h-screen bg-neutral-300">
       <ReactQueryWrapper>
         <Editor />
       </ReactQueryWrapper>

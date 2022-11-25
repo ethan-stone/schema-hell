@@ -155,7 +155,8 @@ export default function Editor() {
       name: Compatability;
     }
   );
-  const [definition, setDefinition] = useState<string>("");
+  const [currentDefinition, setCurrentDefinition] = useState<string>("");
+  const [nextDefinition, setNextDefinition] = useState<string>("");
   const [currentSchemaName, setCurrentSchemaName] = useState<string>("");
 
   const { mutate: createSchema, isLoading: createSchemaIsLoading } =
@@ -177,43 +178,8 @@ export default function Editor() {
     [checkSchemaVersionValidity]
   );
 
-  return (
-    <div className="flex flex-grow flex-col items-center justify-center">
-      <div className="w-1/2">
-        <Select
-          data={formats}
-          mapOptionDisplayName={({ id, name }) => ({
-            id: id.toString(),
-            displayName: name,
-          })}
-          selected={selectedFormat}
-          onChange={({ id, name }) => {
-            setSelectedFormat({ id, name });
-            checkSchemaVersionValidityDebounce({
-              format: name,
-              definition: definition,
-            });
-          }}
-        />
-        <Select
-          data={compatibilities}
-          mapOptionDisplayName={({ id, name }) => ({
-            id: id.toString(),
-            displayName: name,
-          })}
-          selected={selectedCompatibility}
-          onChange={setSelectedCompatibility}
-        />
-        <CMEditor
-          className="mt-1"
-          doc={definition}
-          onChange={(update) => {
-            setDefinition(update.state.doc.toJSON().join("\n"));
-            const diagnostic = linter(update.view);
-            console.log(diagnostic);
-          }}
-        />
-        <button
+  {
+    /* <button
           type="button"
           className="mt-1 w-full rounded-lg bg-neutral-900 p-2 text-neutral-200 shadow-md focus:outline-none"
           onClick={() => {
@@ -252,7 +218,56 @@ export default function Editor() {
           ) : (
             "New Version"
           )}
-        </button>
+        </button> */
+  }
+
+  return (
+    <div className="flex flex-grow flex-row justify-between">
+      <div className="w-2/5">
+        <CMEditor
+          doc={currentDefinition}
+          onChange={(update) => {
+            setCurrentDefinition(update.state.doc.toJSON().join("\n"));
+            const diagnostic = linter(update.view);
+            console.log(diagnostic);
+          }}
+        />
+      </div>
+      <div className="w-1/5">
+        <Select
+          data={formats}
+          mapOptionDisplayName={({ id, name }) => ({
+            id: id.toString(),
+            displayName: name,
+          })}
+          selected={selectedFormat}
+          onChange={({ id, name }) => {
+            setSelectedFormat({ id, name });
+            checkSchemaVersionValidityDebounce({
+              format: name,
+              definition: nextDefinition,
+            });
+          }}
+        />
+        <Select
+          data={compatibilities}
+          mapOptionDisplayName={({ id, name }) => ({
+            id: id.toString(),
+            displayName: name,
+          })}
+          selected={selectedCompatibility}
+          onChange={setSelectedCompatibility}
+        />
+      </div>
+      <div className="w-2/5">
+        <CMEditor
+          doc={nextDefinition}
+          onChange={(update) => {
+            setNextDefinition(update.state.doc.toJSON().join("\n"));
+            const diagnostic = linter(update.view);
+            console.log(diagnostic);
+          }}
+        />
       </div>
     </div>
   );
