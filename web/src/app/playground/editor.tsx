@@ -1,18 +1,16 @@
 "use client";
 
-import { useMutation } from "@tanstack/react-query";
 import { Fragment, useMemo, useState } from "react";
-import type {
-  ReqBody as RegisterSchemaVersionReqBody,
-  ResBody as RegisterSchemaVersionResBody,
-  Query as RegisterSchemaVersionQuery,
-} from "../../pages/api/schemas/[schemaName]/versions/index";
 import { Listbox, Transition } from "@headlessui/react";
 import { CheckIcon, ChevronUpDownIcon } from "@heroicons/react/20/solid";
 import { debounce } from "../../utils/debounce";
 import { useCreateSchema } from "../../api/create-schema";
 import { useCheckSchemaVersionValidity } from "../../api/check-schema-version-validity";
 import { useRegisterSchemaVersion } from "../../api/register-schema-version";
+import { CMEditor } from "../../components/editor";
+import { jsonParseLinter } from "@codemirror/lang-json";
+
+const linter = jsonParseLinter();
 
 type SelectProps<T> = {
   data: T[];
@@ -181,7 +179,7 @@ export default function Editor() {
 
   return (
     <div className="flex flex-grow flex-col items-center justify-center">
-      <div className="w-1/3">
+      <div className="w-1/2">
         <Select
           data={formats}
           mapOptionDisplayName={({ id, name }) => ({
@@ -206,16 +204,14 @@ export default function Editor() {
           selected={selectedCompatibility}
           onChange={setSelectedCompatibility}
         />
-        <textarea
-          onChange={(event) => {
-            setDefinition(event.target.value);
-            checkSchemaVersionValidityDebounce({
-              format: selectedFormat.name,
-              definition: event.target.value,
-            });
+        <CMEditor
+          className="mt-1"
+          doc={definition}
+          onChange={(update) => {
+            setDefinition(update.state.doc.toJSON().join("\n"));
+            const diagnostic = linter(update.view);
+            console.log(diagnostic);
           }}
-          value={definition}
-          className="mt-1 w-full rounded-lg p-2 shadow-md focus:outline-none"
         />
         <button
           type="button"
@@ -254,7 +250,7 @@ export default function Editor() {
               Creating...
             </div>
           ) : (
-            "Create Schema"
+            "New Version"
           )}
         </button>
       </div>
