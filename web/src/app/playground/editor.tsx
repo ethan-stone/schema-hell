@@ -12,24 +12,33 @@ import { jsonParseLinter } from "@codemirror/lang-json";
 
 const linter = jsonParseLinter();
 
-type SelectProps<T> = {
+type SelectProps<T extends { id: number; [k: string]: any }> = {
+  className?: string;
   data: T[];
   selected: T;
   mapOptionDisplayName: (option: T) => { id: string; displayName: string };
   onChange: (selected: T) => void;
 };
 
-const Select = <T,>(props: SelectProps<T>) => {
-  const { data, mapOptionDisplayName, selected, onChange } = props;
+const Select = <T extends { id: number; [k: string]: any }>(
+  props: SelectProps<T>
+) => {
+  const { data, mapOptionDisplayName, selected, onChange, className } = props;
+
+  console.log(selected);
+  console.log(onChange);
 
   return (
     <Listbox
       value={selected}
+      by="id"
       onChange={(selected) => {
         onChange(selected);
       }}
     >
-      <div className="relative mt-1">
+      <div
+        className={className ? `relative mt-1 ${className}` : "relative mt-1"}
+      >
         <Listbox.Button className="relative w-full cursor-default rounded-lg bg-white py-2 pl-3 pr-10 text-left shadow-md focus:outline-none focus-visible:border-neutral-500 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-700 sm:text-sm">
           <span className="block truncate">
             {mapOptionDisplayName(selected).displayName}
@@ -47,7 +56,7 @@ const Select = <T,>(props: SelectProps<T>) => {
           leaveFrom="opacity-100"
           leaveTo="opacity-0"
         >
-          <Listbox.Options className="absolute mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
+          <Listbox.Options className="absolute mt-1 max-h-60 rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
             {data.map((d) => {
               const { id, displayName } = mapOptionDisplayName(d);
               return (
@@ -57,8 +66,8 @@ const Select = <T,>(props: SelectProps<T>) => {
                   className={({ active }) =>
                     `relative z-10 cursor-default select-none py-2 pl-10 pr-4 ${
                       active
-                        ? "bg-neutral-900 text-neutral-100"
-                        : "bg-white text-neutral-900"
+                        ? "bg-neutral-800 text-neutral-100"
+                        : "bg-white text-neutral-800"
                     }`
                   }
                 >
@@ -66,7 +75,7 @@ const Select = <T,>(props: SelectProps<T>) => {
                     return (
                       <>
                         <span
-                          className={`block truncate ${
+                          className={`${
                             selected ? "font-medium" : "font-normal"
                           }`}
                         >
@@ -223,35 +232,45 @@ export default function Editor() {
 
   return (
     <div className="flex h-full max-h-screen flex-col items-stretch">
-      <div className="h-1/6 w-1/5">
+      <div className="flex h-[10%] w-1/2 flex-row gap-4">
+        <span>Schema Format:</span>
         <Select
+          className="flex-grow"
           data={formats}
           mapOptionDisplayName={({ id, name }) => ({
             id: id.toString(),
             displayName: name,
           })}
           selected={selectedFormat}
-          onChange={({ id, name }) => {
-            setSelectedFormat({ id, name });
-            checkSchemaVersionValidityDebounce({
-              format: name,
-              definition: nextDefinition,
-            });
+          onChange={(d) => {
+            setSelectedFormat({ id: d.id, name: d.name });
+            // checkSchemaVersionValidityDebounce({
+            //   format: name,
+            //   definition: nextDefinition,
+            // });
+            console.log(d);
+            return;
           }}
         />
+        <span>Schema Compatability:</span>
         <Select
+          className="flex-grow"
           data={compatibilities}
           mapOptionDisplayName={({ id, name }) => ({
             id: id.toString(),
             displayName: name,
           })}
           selected={selectedCompatibility}
-          onChange={setSelectedCompatibility}
+          onChange={(d) => {
+            setSelectedCompatibility({ id: d.id, name: d.name });
+            return;
+            4;
+          }}
         />
       </div>
-      <div className="flex h-5/6 flex-row">
+      <div className="flex h-[90%] flex-row">
         <CMEditor
-          className="w-5/12"
+          className="w-1/2"
           doc={currentDefinition}
           onChange={(update) => {
             setCurrentDefinition(update.state.doc.toJSON().join("\n"));
@@ -259,9 +278,8 @@ export default function Editor() {
             console.log(diagnostic);
           }}
         />
-        <div className="w-2/12" />
         <CMEditor
-          className="w-5/12"
+          className="w-1/2"
           doc={nextDefinition}
           onChange={(update) => {
             setNextDefinition(update.state.doc.toJSON().join("\n"));
