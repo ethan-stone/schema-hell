@@ -8,7 +8,7 @@ import type {
 import { request } from "./basic-request";
 
 async function registerSchemaVersion(args: ReqBody & Query) {
-  return request<ReqBody, SuccessResBody, ErrorResBody>(
+  const res = await request<ReqBody, SuccessResBody, ErrorResBody>(
     `/api/schemas/${args.schemaName}/versions`,
     {
       method: "POST",
@@ -17,12 +17,13 @@ async function registerSchemaVersion(args: ReqBody & Query) {
       },
     }
   );
+
+  if (res.ok) return res.data;
+  throw res.data;
 }
 
-type Result = Awaited<ReturnType<typeof registerSchemaVersion>>;
-
 type Opts = Omit<
-  UseMutationOptions<Result, unknown, ReqBody & Query>,
+  UseMutationOptions<SuccessResBody, ErrorResBody, ReqBody & Query>,
   "mutationFn"
 >;
 

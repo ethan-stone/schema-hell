@@ -164,10 +164,25 @@ export default function Editor() {
   const [nextDefinitionDiagnostic, setNextDefinitionDiagnostic] =
     useState<string>();
 
-  // const { mutate: createSchema, isLoading: createSchemaIsLoading } =
-  //   useCreateSchema();
+  const {
+    mutate: registerSchemaVersion,
+    isLoading: registerSchemaVersionLoading,
+    data: registerSchemaVersionData,
+    error: registerSchemaVersionError,
+  } = useRegisterSchemaVersion();
 
-  // const { mutate: registerSchemaVersion } = useRegisterSchemaVersion();
+  const {
+    mutate: createSchema,
+    isLoading: createSchemaLoading,
+    error: createScheamError,
+  } = useCreateSchema({
+    onSuccess: (data) => {
+      registerSchemaVersion({
+        schemaName: data.name,
+        definition: nextDefinition,
+      });
+    },
+  });
 
   const {
     mutate: checkCurrentSchemaValidity,
@@ -192,7 +207,7 @@ export default function Editor() {
     ? checkCurrentSchemaValidityData.error
     : "No issues found";
 
-  const checkNexyValidityDebounce = useMemo(
+  const checkNextValidityDebounce = useMemo(
     () => debounce(checkNextSchemaValidity, 500),
     [checkNextSchemaValidity]
   );
@@ -203,53 +218,25 @@ export default function Editor() {
     ? checkNextSchemaValidityData.error
     : "No issues found";
 
-  {
-    /* <button
-          type="button"
-          className="mt-1 w-full rounded-lg bg-neutral-900 p-2 text-neutral-200 shadow-md focus:outline-none"
-          onClick={() => {
-            createSchema({
-              format: selectedFormat.name,
-              definition,
-              compatibility: selectedCompatibility.name,
-            });
-          }}
-        >
-          {createSchemaIsLoading ? (
-            <div className="flex flex-row items-center justify-center">
-              <Spinner />
-              Creating...
-            </div>
-          ) : (
-            "Create Schema"
-          )}
-        </button>
-        <button
-          type="button"
-          className="mt-1 w-full rounded-lg bg-neutral-900 p-2 text-neutral-200 shadow-md focus:outline-none"
-          onClick={() => {
-            createSchema({
-              format: selectedFormat.name,
-              definition,
-              compatibility: selectedCompatibility.name,
-            });
-          }}
-        >
-          {createSchemaIsLoading ? (
-            <div className="flex flex-row items-center justify-center">
-              <Spinner />
-              Creating...
-            </div>
-          ) : (
-            "New Version"
-          )}
-        </button> */
-  }
+  let testCompatibilityResult: string | null = null;
+  if (createScheamError) testCompatibilityResult = createScheamError.message;
+  if (registerSchemaVersionError)
+    testCompatibilityResult = registerSchemaVersionError.message;
+  if (registerSchemaVersionData)
+    testCompatibilityResult =
+      registerSchemaVersionData.status === "AVAILABLE" ? "Passed!" : "Failed!";
+
+  console.log(testCompatibilityResult);
+
+  let testingStatus: string | null = null;
+  if (createSchemaLoading) testingStatus = "Creating Schema ...";
+  if (registerSchemaVersionLoading)
+    testingStatus = "Registering New Version ...";
 
   return (
-    <div className="flex h-full max-h-screen flex-col items-stretch">
-      <div className="flex h-[10%] w-1/2 flex-row items-center justify-center gap-4 px-3">
-        <span>Schema Format:</span>
+    <div className="flex h-full max-h-screen flex-col items-stretch bg-neutral-800">
+      <div className="flex h-[10%] w-full flex-row items-center justify-between gap-4 border-b border-b-white px-3">
+        <span className="text-white">Schema Format:</span>
         <Select
           className="flex-grow"
           data={formats}
@@ -266,7 +253,7 @@ export default function Editor() {
             });
           }}
         />
-        <span>Schema Compatability:</span>
+        <span className="text-white">Schema Compatability:</span>
         <Select
           className="flex-grow"
           data={compatibilities}
@@ -281,10 +268,33 @@ export default function Editor() {
             4;
           }}
         />
+        <button
+          type="button"
+          className="mt-1 w-full rounded-lg bg-white p-2 text-neutral-800 shadow-md focus:outline-none"
+          onClick={() => {
+            createSchema({
+              format: selectedFormat.name,
+              definition: currentDefinition,
+              compatibility: selectedCompatibility.name,
+            });
+          }}
+        >
+          {createSchemaLoading || registerSchemaVersionLoading ? (
+            <div className="flex flex-row items-center justify-center">
+              <Spinner />
+              {testingStatus}
+            </div>
+          ) : (
+            "Test Compatibility"
+          )}
+        </button>
+        {testCompatibilityResult ? (
+          <span className="text-white">{testCompatibilityResult}</span>
+        ) : null}
       </div>
       <div className="flex h-[90%] flex-row bg-neutral-800">
         <div className="h-full w-1/2 ">
-          <div className="mb-2 h-[8%] p-2 text-white">
+          <div className="mb-2 h-[8%] border-b border-b-white p-2 text-white">
             {checkCurrentSchemaValidityLoading ? (
               <Spinner />
             ) : (
@@ -306,7 +316,7 @@ export default function Editor() {
           />
         </div>
         <div className="h-full w-1/2">
-          <div className="mb-2 h-[8%] p-2 text-white">
+          <div className="mb-2 h-[8%] border-b border-b-white p-2 text-white">
             {checkNextSchemaValidityLoading ? (
               <Spinner />
             ) : (
@@ -318,8 +328,8 @@ export default function Editor() {
             doc={nextDefinition}
             onChange={(update) => {
               setNextDefinition(update.state.doc.toJSON().join("\n"));
-              checkNexyValidityDebounce({
-                definition: nextDefinition,
+              checkNextValidityDebounce({
+                definition: update.state.doc.toJSON().join("\n"),
                 format: selectedFormat.name,
               });
               const diagnostic = linter(update.view)[0];

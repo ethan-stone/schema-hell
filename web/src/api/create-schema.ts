@@ -7,15 +7,22 @@ import type {
 import { request } from "./basic-request";
 
 async function createSchema(args: ReqBody) {
-  return request<ReqBody, SuccessResBody, ErrorResBody>("/api/schemas", {
-    body: args,
-    method: "POST",
-  });
+  const res = await request<ReqBody, SuccessResBody, ErrorResBody>(
+    "/api/schemas",
+    {
+      body: args,
+      method: "POST",
+    }
+  );
+
+  if (res.ok) return res.data;
+  throw res.data;
 }
 
-type Result = Awaited<ReturnType<typeof createSchema>>;
-
-type Opts = Omit<UseMutationOptions<Result, unknown, ReqBody>, "mutationFn">;
+type Opts = Omit<
+  UseMutationOptions<SuccessResBody, ErrorResBody, ReqBody>,
+  "mutationFn"
+>;
 
 export const useCreateSchema = (opts?: Opts) => {
   return useMutation(createSchema, opts);

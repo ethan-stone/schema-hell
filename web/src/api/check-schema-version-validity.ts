@@ -15,7 +15,6 @@ async function checkSchemaVersionValidity(args: ReqBody) {
     }
   );
 
-  console.log(res);
   if (res.ok) return res.data;
   throw res.data;
 }
