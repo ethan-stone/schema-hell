@@ -316,7 +316,7 @@ export default function Editor() {
           />
         </div>
         <div className="h-full w-1/2">
-          <div className="mb-2 h-[8%] border-b border-b-white p-2 text-white">
+          <div className="mb-2 h-[10%] border-b border-b-white p-2 text-white">
             {checkNextSchemaValidityLoading ? (
               <Spinner />
             ) : (
@@ -324,7 +324,7 @@ export default function Editor() {
             )}
           </div>
           <CMEditor
-            className="h-[92%] w-full"
+            className="h-[90%] w-full"
             doc={nextDefinition}
             onChange={(update) => {
               setNextDefinition(update.state.doc.toJSON().join("\n"));
