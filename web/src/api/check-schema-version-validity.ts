@@ -7,15 +7,21 @@ import type {
 import { request } from "./basic-request";
 
 async function checkSchemaVersionValidity(args: ReqBody) {
-  return request<ReqBody, SuccessResBody, ErrorResBody>(
+  const res = await request<ReqBody, SuccessResBody, ErrorResBody>(
     "/api/check-schema-version-validity",
     {
       body: args,
       method: "POST",
     }
   );
+
+  console.log(res);
+  if (res.ok) return res.data;
+  throw res.data;
 }
 
 export const useCheckSchemaVersionValidity = () => {
-  return useMutation(checkSchemaVersionValidity);
+  return useMutation<SuccessResBody, ErrorResBody, ReqBody>(
+    checkSchemaVersionValidity
+  );
 };

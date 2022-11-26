@@ -25,9 +25,6 @@ const Select = <T extends { id: number; [k: string]: any }>(
 ) => {
   const { data, mapOptionDisplayName, selected, onChange, className } = props;
 
-  console.log(selected);
-  console.log(onChange);
-
   return (
     <Listbox
       value={selected}
@@ -56,7 +53,7 @@ const Select = <T extends { id: number; [k: string]: any }>(
           leaveFrom="opacity-100"
           leaveTo="opacity-0"
         >
-          <Listbox.Options className="absolute mt-1 max-h-60 rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
+          <Listbox.Options className="absolute z-50 mt-1 rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
             {data.map((d) => {
               const { id, displayName } = mapOptionDisplayName(d);
               return (
@@ -64,7 +61,7 @@ const Select = <T extends { id: number; [k: string]: any }>(
                   key={id}
                   value={d}
                   className={({ active }) =>
-                    `relative z-10 cursor-default select-none py-2 pl-10 pr-4 ${
+                    `relative z-50 cursor-default select-none py-2 pl-10 pr-4 ${
                       active
                         ? "bg-neutral-800 text-neutral-100"
                         : "bg-white text-neutral-800"
@@ -110,11 +107,7 @@ type Compatability =
   | "FULL"
   | "FULL_ALL";
 
-const formats: { id: number; name: Format }[] = [
-  { id: 1, name: "AVRO" },
-  { id: 2, name: "JSON" },
-  { id: 3, name: "PROTOBUF" },
-];
+const formats: { id: number; name: Format }[] = [{ id: 1, name: "JSON" }];
 
 const compatibilities: { id: number; name: Compatability }[] = [
   { id: 1, name: "NONE" },
@@ -165,27 +158,50 @@ export default function Editor() {
     }
   );
   const [currentDefinition, setCurrentDefinition] = useState<string>("");
+  const [currentDefinitionDiagnostic, setCurrentDefinitionDiagnostic] =
+    useState<string>();
   const [nextDefinition, setNextDefinition] = useState<string>("");
-  const [currentSchemaName, setCurrentSchemaName] = useState<string>("");
+  const [nextDefinitionDiagnostic, setNextDefinitionDiagnostic] =
+    useState<string>();
 
-  const { mutate: createSchema, isLoading: createSchemaIsLoading } =
-    useCreateSchema({
-      onSuccess: (data) => {
-        if (data.ok) {
-          setCurrentSchemaName(data.data.name);
-        }
-      },
-    });
+  // const { mutate: createSchema, isLoading: createSchemaIsLoading } =
+  //   useCreateSchema();
 
-  const { mutate: registerSchemaVersion } = useRegisterSchemaVersion();
+  // const { mutate: registerSchemaVersion } = useRegisterSchemaVersion();
 
-  const { mutate: checkSchemaVersionValidity } =
-    useCheckSchemaVersionValidity();
+  const {
+    mutate: checkCurrentSchemaValidity,
+    data: checkCurrentSchemaValidityData,
+    isLoading: checkCurrentSchemaValidityLoading,
+  } = useCheckSchemaVersionValidity();
 
-  const checkSchemaVersionValidityDebounce = useMemo(
-    () => debounce(checkSchemaVersionValidity, 500),
-    [checkSchemaVersionValidity]
+  const {
+    mutate: checkNextSchemaValidity,
+    data: checkNextSchemaValidityData,
+    isLoading: checkNextSchemaValidityLoading,
+  } = useCheckSchemaVersionValidity();
+
+  const checkCurrentSchemaValidityDebounce = useMemo(
+    () => debounce(checkCurrentSchemaValidity, 500),
+    [checkCurrentSchemaValidity]
   );
+
+  const currentDefinitionIssues = currentDefinitionDiagnostic
+    ? currentDefinitionDiagnostic
+    : checkCurrentSchemaValidityData?.error
+    ? checkCurrentSchemaValidityData.error
+    : "No issues found";
+
+  const checkNexyValidityDebounce = useMemo(
+    () => debounce(checkNextSchemaValidity, 500),
+    [checkNextSchemaValidity]
+  );
+
+  const nextDefinitionIssues = nextDefinitionDiagnostic
+    ? nextDefinitionDiagnostic
+    : checkNextSchemaValidityData?.error
+    ? checkNextSchemaValidityData.error
+    : "No issues found";
 
   {
     /* <button
@@ -232,7 +248,7 @@ export default function Editor() {
 
   return (
     <div className="flex h-full max-h-screen flex-col items-stretch">
-      <div className="flex h-[10%] w-1/2 flex-row gap-4">
+      <div className="flex h-[10%] w-1/2 flex-row items-center justify-center gap-4 px-3">
         <span>Schema Format:</span>
         <Select
           className="flex-grow"
@@ -242,14 +258,12 @@ export default function Editor() {
             displayName: name,
           })}
           selected={selectedFormat}
-          onChange={(d) => {
-            setSelectedFormat({ id: d.id, name: d.name });
-            // checkSchemaVersionValidityDebounce({
-            //   format: name,
-            //   definition: nextDefinition,
-            // });
-            console.log(d);
-            return;
+          onChange={({ id, name }) => {
+            setSelectedFormat({ id, name });
+            checkCurrentSchemaValidityDebounce({
+              format: name,
+              definition: nextDefinition,
+            });
           }}
         />
         <span>Schema Compatability:</span>
@@ -268,25 +282,51 @@ export default function Editor() {
           }}
         />
       </div>
-      <div className="flex h-[90%] flex-row">
-        <CMEditor
-          className="w-1/2"
-          doc={currentDefinition}
-          onChange={(update) => {
-            setCurrentDefinition(update.state.doc.toJSON().join("\n"));
-            const diagnostic = linter(update.view);
-            console.log(diagnostic);
-          }}
-        />
-        <CMEditor
-          className="w-1/2"
-          doc={nextDefinition}
-          onChange={(update) => {
-            setNextDefinition(update.state.doc.toJSON().join("\n"));
-            const diagnostic = linter(update.view);
-            console.log(diagnostic);
-          }}
-        />
+      <div className="flex h-[90%] flex-row bg-neutral-800">
+        <div className="h-full w-1/2 ">
+          <div className="mb-2 h-[8%] p-2 text-white">
+            {checkCurrentSchemaValidityLoading ? (
+              <Spinner />
+            ) : (
+              currentDefinitionIssues
+            )}
+          </div>
+          <CMEditor
+            className="h-[92%] w-full"
+            doc={currentDefinition}
+            onChange={(update) => {
+              setCurrentDefinition(update.state.doc.toJSON().join("\n"));
+              checkCurrentSchemaValidityDebounce({
+                definition: update.state.doc.toJSON().join("\n"),
+                format: selectedFormat.name,
+              });
+              const diagnostic = linter(update.view)[0];
+              setCurrentDefinitionDiagnostic(diagnostic?.message);
+            }}
+          />
+        </div>
+        <div className="h-full w-1/2">
+          <div className="mb-2 h-[8%] p-2 text-white">
+            {checkNextSchemaValidityLoading ? (
+              <Spinner />
+            ) : (
+              nextDefinitionIssues
+            )}
+          </div>
+          <CMEditor
+            className="h-[92%] w-full"
+            doc={nextDefinition}
+            onChange={(update) => {
+              setNextDefinition(update.state.doc.toJSON().join("\n"));
+              checkNexyValidityDebounce({
+                definition: nextDefinition,
+                format: selectedFormat.name,
+              });
+              const diagnostic = linter(update.view)[0];
+              setNextDefinitionDiagnostic(diagnostic?.message);
+            }}
+          />
+        </div>
       </div>
     </div>
   );

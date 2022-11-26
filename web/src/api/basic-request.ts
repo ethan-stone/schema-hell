@@ -26,6 +26,9 @@ export async function request<
   const res = await fetch(url, {
     method: args.method,
     body: JSON.stringify(args.body),
+    headers: {
+      "Content-Type": "application/json",
+    },
   });
 
   const json = await res.json();

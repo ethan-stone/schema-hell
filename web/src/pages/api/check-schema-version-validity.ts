@@ -20,7 +20,7 @@ export type ReqBody = z.infer<typeof ReqBody>;
 
 type ValidationErrors = z.inferFormattedError<typeof ReqBody>;
 
-export type SuccessResBody = { isValid: boolean };
+export type SuccessResBody = { isValid: boolean; error?: string };
 export type ErrorResBody =
   | ValidationErrorRes<ValidationErrors>
   | InvalidRequestRes
@@ -35,6 +35,7 @@ async function handler(
   res: NextApiResponse<ResBody>
 ) {
   const { method, log, body } = req;
+  console.log(typeof body);
 
   // validate request method
   if (!supportedMethods.includes(method || "")) {
