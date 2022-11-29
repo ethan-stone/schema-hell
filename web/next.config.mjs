@@ -11,9 +11,12 @@ import { withAxiom } from "next-axiom";
 const config = {
   reactStrictMode: true,
   swcMinify: true,
-  i18n: {
-    locales: ["en"],
-    defaultLocale: "en",
+  // i18n: {
+  //   locales: ["en"],
+  //   defaultLocale: "en",
+  // },
+  experimental: {
+    appDir: true,
   },
 };
 export default withAxiom(config);

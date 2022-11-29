@@ -2,6 +2,7 @@ import {
   GlueClient,
   CheckSchemaVersionValidityCommand,
   CreateSchemaCommand,
+  RegisterSchemaVersionCommand,
 } from "@aws-sdk/client-glue";
 import { env } from "../env/server.mjs";
 import { nanoid } from "./nanoid";
@@ -25,6 +26,12 @@ type CreateSchemaArgs = {
     | "FULL_ALL";
 };
 
+type RegisterSchemaVersionArgs = {
+  registryName: string;
+  schemaName: string;
+  definition: string;
+};
+
 type Result<Data, Error> =
   | {
       success: true;
@@ -32,7 +39,7 @@ type Result<Data, Error> =
     }
   | {
       success: false;
-      error: Error;
+      reason: Error;
     };
 
 class SchemaRegistry {
@@ -40,7 +47,12 @@ class SchemaRegistry {
 
   async checkSchemaVersionValidity(
     args: CheckSchemaVersionValidity
-  ): Promise<Result<{ isValid: boolean; error: string | undefined }, unknown>> {
+  ): Promise<
+    Result<
+      { isValid: boolean; error: string | undefined },
+      { code: "UNKNOWN_ERROR"; error: unknown }
+    >
+  > {
     try {
       const res = await this.glueClient.send(
         new CheckSchemaVersionValidityCommand({
@@ -59,7 +71,10 @@ class SchemaRegistry {
     } catch (error) {
       return {
         success: false,
-        error,
+        reason: {
+          code: "UNKNOWN_ERROR",
+          error,
+        },
       };
     }
   }
@@ -72,9 +87,10 @@ class SchemaRegistry {
       },
       | {
           code: "UNKNOWN_ERROR";
+          error: unknown;
         }
       | {
-          code: "EMPTY_NAME_AND_OR_VERSION_ID";
+          code: "EMPTY_RESPONSE";
         }
     >
   > {
@@ -94,8 +110,8 @@ class SchemaRegistry {
       if (!res.SchemaName || !res.SchemaVersionId)
         return {
           success: false,
-          error: {
-            code: "EMPTY_NAME_AND_OR_VERSION_ID",
+          reason: {
+            code: "EMPTY_RESPONSE",
           },
         };
 
@@ -109,8 +125,57 @@ class SchemaRegistry {
     } catch (error) {
       return {
         success: false,
-        error: {
+        reason: {
           code: "UNKNOWN_ERROR",
+          error,
+        },
+      };
+    }
+  }
+
+  async registerSchemaVersion(args: RegisterSchemaVersionArgs): Promise<
+    Result<
+      {
+        versionId: string;
+        versionNumber: number;
+        status: "AVAILABLE" | "DELETING" | "FAILURE" | "PENDING" | string;
+      },
+      { code: "UNKNOWN_ERROR"; error: unknown } | { code: "EMPTY_RESPONSE" }
+    >
+  > {
+    try {
+      const res = await this.glueClient.send(
+        new RegisterSchemaVersionCommand({
+          SchemaId: {
+            SchemaName: args.schemaName,
+            RegistryName: args.registryName,
+          },
+          SchemaDefinition: args.definition,
+        })
+      );
+
+      if (!res.VersionNumber || !res.SchemaVersionId || !res.Status)
+        return {
+          success: false,
+          reason: {
+            code: "EMPTY_RESPONSE",
+          },
+        };
+
+      return {
+        success: true,
+        data: {
+          versionId: res.SchemaVersionId,
+          versionNumber: res.VersionNumber,
+          status: res.Status,
+        },
+      };
+    } catch (error) {
+      return {
+        success: false,
+        reason: {
+          code: "UNKNOWN_ERROR",
+          error,
         },
       };
     }
