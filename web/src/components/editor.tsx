@@ -24,7 +24,5 @@ export const CMEditor: React.FC<Props> = (props) => {
     }
   }, [editorView]);
 
-  return (
-    <div className={`bg-neutral-800 ${props.className}`} ref={refContainer} />
-  );
+  return <div className={`bg-white ${props.className}`} ref={refContainer} />;
 };

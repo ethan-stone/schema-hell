@@ -33,9 +33,7 @@ const Select = <T extends { id: number; [k: string]: any }>(
         onChange(selected);
       }}
     >
-      <div
-        className={className ? `relative mt-1 ${className}` : "relative mt-1"}
-      >
+      <div className={className ? `relative ${className}` : "relative"}>
         <Listbox.Button className="relative w-full cursor-default rounded-lg bg-white py-2 pl-3 pr-10 text-left shadow-md focus:outline-none focus-visible:border-neutral-500 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-700 sm:text-sm">
           <span className="block truncate">
             {mapOptionDisplayName(selected).displayName}
@@ -96,7 +94,6 @@ const Select = <T extends { id: number; [k: string]: any }>(
   );
 };
 
-type Format = "AVRO" | "JSON" | "PROTOBUF";
 type Compatability =
   | "NONE"
   | "DISABLED"
@@ -106,8 +103,6 @@ type Compatability =
   | "FORWARD_ALL"
   | "FULL"
   | "FULL_ALL";
-
-const formats: { id: number; name: Format }[] = [{ id: 1, name: "JSON" }];
 
 const compatibilities: { id: number; name: Compatability }[] = [
   { id: 1, name: "NONE" },
@@ -144,10 +139,6 @@ const Spinner = () => (
 );
 
 export default function Editor() {
-  const [selectedFormat, setSelectedFormat] = useState<{
-    id: number;
-    name: Format;
-  }>(formats[0] as { id: number; name: Format });
   const [selectedCompatibility, setSelectedCompatibility] = useState<{
     id: number;
     name: Compatability;
@@ -174,7 +165,7 @@ export default function Editor() {
   const {
     mutate: createSchema,
     isLoading: createSchemaLoading,
-    error: createScheamError,
+    error: createSchemaError,
   } = useCreateSchema({
     onSuccess: (data) => {
       registerSchemaVersion({
@@ -219,80 +210,62 @@ export default function Editor() {
     : "No issues found";
 
   let testCompatibilityResult: string | null = null;
-  if (createScheamError) testCompatibilityResult = createScheamError.message;
+  if (createSchemaError) testCompatibilityResult = createSchemaError.message;
   if (registerSchemaVersionError)
     testCompatibilityResult = registerSchemaVersionError.message;
   if (registerSchemaVersionData)
     testCompatibilityResult =
       registerSchemaVersionData.status === "AVAILABLE" ? "Passed!" : "Failed!";
 
-  console.log(testCompatibilityResult);
-
   let testingStatus: string | null = null;
-  if (createSchemaLoading) testingStatus = "Creating Schema ...";
-  if (registerSchemaVersionLoading)
-    testingStatus = "Registering New Version ...";
+  if (createSchemaLoading) testingStatus = "Creating Schema";
+  if (registerSchemaVersionLoading) testingStatus = "Registering New Version";
 
   return (
-    <div className="flex h-full max-h-screen flex-col items-stretch bg-neutral-800">
+    <div className="flex h-full max-h-screen flex-col items-stretch bg-neutral-900">
       <div className="flex h-[10%] w-full flex-row items-center justify-between gap-4 border-b border-b-white px-3">
-        <span className="text-white">Schema Format:</span>
-        <Select
-          className="flex-grow"
-          data={formats}
-          mapOptionDisplayName={({ id, name }) => ({
-            id: id.toString(),
-            displayName: name,
-          })}
-          selected={selectedFormat}
-          onChange={({ id, name }) => {
-            setSelectedFormat({ id, name });
-            checkCurrentSchemaValidityDebounce({
-              format: name,
-              definition: nextDefinition,
-            });
-          }}
-        />
-        <span className="text-white">Schema Compatability:</span>
-        <Select
-          className="flex-grow"
-          data={compatibilities}
-          mapOptionDisplayName={({ id, name }) => ({
-            id: id.toString(),
-            displayName: name,
-          })}
-          selected={selectedCompatibility}
-          onChange={(d) => {
-            setSelectedCompatibility({ id: d.id, name: d.name });
-            return;
-            4;
-          }}
-        />
+        <div className="flex w-1/3 flex-row items-center gap-4">
+          <span className="text-white">Compatability</span>
+          <Select
+            className="flex flex-grow"
+            data={compatibilities}
+            mapOptionDisplayName={({ id, name }) => ({
+              id: id.toString(),
+              displayName: name,
+            })}
+            selected={selectedCompatibility}
+            onChange={(d) => {
+              setSelectedCompatibility({ id: d.id, name: d.name });
+              return;
+              4;
+            }}
+          />
+        </div>
         <button
           type="button"
-          className="mt-1 w-full rounded-lg bg-white p-2 text-neutral-800 shadow-md focus:outline-none"
+          className="mt-1 flex w-1/4 flex-grow flex-row items-center justify-center rounded-lg bg-white p-2 text-center text-neutral-900 shadow-md focus:outline-none"
           onClick={() => {
             createSchema({
-              format: selectedFormat.name,
+              format: "JSON",
               definition: currentDefinition,
               compatibility: selectedCompatibility.name,
             });
           }}
         >
           {createSchemaLoading || registerSchemaVersionLoading ? (
-            <div className="flex flex-row items-center justify-center">
+            <>
               <Spinner />
-              {testingStatus}
-            </div>
+              <p>{testingStatus}</p>
+            </>
           ) : (
-            "Test Compatibility"
+            <>
+              <p>Test Compatibility</p>
+            </>
           )}
         </button>
-        {testCompatibilityResult ? (
-          <span className="text-white">{testCompatibilityResult}</span>
-        ) : null}
+        <span className="w-1/4 text-white">{testCompatibilityResult}</span>
       </div>
-      <div className="flex h-[90%] flex-row bg-neutral-800">
+      <div className="flex h-[90%] flex-row bg-neutral-900">
         <div className="h-full w-1/2 ">
           <div className="mb-2 h-[10%] border-b border-b-white p-2 text-white">
             {checkCurrentSchemaValidityLoading ? (
@@ -306,11 +279,12 @@ export default function Editor() {
             doc={currentDefinition}
             onChange={(update) => {
               setCurrentDefinition(update.state.doc.toJSON().join("\n"));
-              checkCurrentSchemaValidityDebounce({
-                definition: update.state.doc.toJSON().join("\n"),
-                format: selectedFormat.name,
-              });
               const diagnostic = linter(update.view)[0];
+              if (!diagnostic)
+                checkCurrentSchemaValidityDebounce({
+                  definition: update.state.doc.toJSON().join("\n"),
+                  format: "JSON",
+                });
               setCurrentDefinitionDiagnostic(diagnostic?.message);
             }}
           />
@@ -328,11 +302,12 @@ export default function Editor() {
             doc={nextDefinition}
             onChange={(update) => {
               setNextDefinition(update.state.doc.toJSON().join("\n"));
-              checkNextValidityDebounce({
-                definition: update.state.doc.toJSON().join("\n"),
-                format: selectedFormat.name,
-              });
               const diagnostic = linter(update.view)[0];
+              if (!diagnostic)
+                checkNextValidityDebounce({
+                  definition: update.state.doc.toJSON().join("\n"),
+                  format: "JSON",
+                });
               setNextDefinitionDiagnostic(diagnostic?.message);
             }}
           />

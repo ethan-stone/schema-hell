@@ -10,9 +10,9 @@ import { syntaxHighlighting } from "@codemirror/language";
 import { oneDarkHighlightStyle } from "./one-dark-highlight";
 
 const cursor = "#ffffff";
-const background = "transparent";
-const darkBackground = "#262626";
-const highlightBackground = "#262626";
+const background = "#171717";
+const darkBackground = "#171717";
+const highlightBackground = "#171717";
 const tooltipBackground = "#353a42";
 const selection = "#404040";
 const ivory = "#abb2bf";
@@ -51,7 +51,7 @@ const theme = EditorView.theme(
     ".cm-searchMatch.cm-searchMatch-selected": {
       backgroundColor: "#6199ff2f",
     },
-    ".cm-activeLine": { backgroundColor: highlightBackground },
+    ".cm-activeLine": { backgroundColor: `${highlightBackground}44` },
     ".cm-selectionMatch": { backgroundColor: "#aafe661a" },
     "&.cm-focused .cm-matchingBracket, &.cm-focused .cm-nonmatchingBracket": {
       backgroundColor: "#bad0f847",
