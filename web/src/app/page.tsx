@@ -8,8 +8,8 @@ export default function Page() {
         Schema evolution and compatibility is hard. This helps to make it easier
       </div>
       <div className="flex flex-row gap-6">
-        <Link href="/playground">Playground</Link>
-        <Link href="/thingstoknow">Things to Know</Link>
+        <Link href="/compatibility-checker">/compatibility-checker</Link>
+        <Link href="/things-to-know">/things-to-know</Link>
       </div>
     </div>
   );

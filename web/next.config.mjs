@@ -11,6 +11,7 @@ import { withAxiom } from "next-axiom";
 const config = {
   reactStrictMode: true,
   swcMinify: true,
+  pageExtensions: ["mdx", "md", "jsx", "js", "tsx", "ts"],
   // i18n: {
   //   locales: ["en"],
   //   defaultLocale: "en",
