@@ -4,7 +4,7 @@ import { markdownToHtml } from "../../utils/markdown-to-html";
 
 export default async function Page() {
   const markdown = readFileSync(
-    join(process.cwd(), "markdown/things-to-know/page.md")
+    join(process.cwd(), "src/markdown/things-to-know/page.md")
   ).toString();
 
   const html = await markdownToHtml(markdown);
