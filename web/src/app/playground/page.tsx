@@ -1,4 +1,4 @@
-import ReactQueryWrapper from "../../components/ReactQueryWrapper";
+import ReactQueryWrapper from "../../components/react-query-wrapper";
 import Editor from "./editor";
 
 export default function Page() {
