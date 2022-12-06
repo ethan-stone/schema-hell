@@ -1,6 +1,7 @@
-import { StackContext, Stack } from "@serverless-stack/resources";
+import { StackContext, Stack, Queue } from "@serverless-stack/resources";
 import * as aws_glue from "aws-cdk-lib/aws-glue";
 import * as aws_iam from "aws-cdk-lib/aws-iam";
+import { Effect, PolicyStatement } from "aws-cdk-lib/aws-iam";
 import { env } from "./env";
 
 type Env = {
@@ -47,6 +48,41 @@ export function SchemaRegistryStack({ stack }: StackContext) {
     new aws_iam.PolicyStatement({
       actions: ["glue:CheckSchemaVersionValidity"],
       resources: ["*"]
+    })
+  );
+
+  const queue = new Queue(stack, "Queue", {
+    consumer: {
+      function: {
+        handler: "functions/queueConsumer.main",
+        timeout: 30,
+        environment: {
+          SCHEMA_REGISTRY_NAME: schemaRegistry.name
+        },
+        permissions: [
+          new aws_iam.PolicyStatement({
+            effect: Effect.ALLOW,
+            actions: [
+              "glue:GetSchemaVersion",
+              "glue:GetSchema",
+              "glue:DeleteSchema",
+              "glue:DeleteSchemaVersions"
+            ],
+            resources: [
+              `arn:aws:glue:${stack.region}:${stack.account}:registry/${schemaRegistry.name}`,
+              `arn:aws:glue:${stack.region}:${stack.account}:schema/*`
+            ]
+          })
+        ]
+      }
+    }
+  });
+
+  webBackendUser.addToPrincipalPolicy(
+    new aws_iam.PolicyStatement({
+      effect: Effect.ALLOW,
+      actions: ["sqs:SendMessage"],
+      resources: [queue.queueArn]
     })
   );
 }

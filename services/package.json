@@ -4,6 +4,7 @@
   "type": "module",
   "scripts": {},
   "dependencies": {
+    "@aws-sdk/client-glue": "^3.224.0",
     "aws-sdk": "^2.1253.0"
   },
   "devDependencies": {
