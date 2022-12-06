@@ -2,14 +2,20 @@ import Link from "next/link";
 
 export default function Page() {
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center gap-10 bg-gradient-to-b bg-neutral-900 font-mono text-white">
+    <div className="flex min-h-screen flex-col items-center justify-center gap-10 bg-neutral-900 bg-gradient-to-b font-mono text-white">
       <div className="text-9xl">SCHEMA HELL</div>
-      <div className="text-3xl">
-        Schema evolution and compatibility is hard. This helps to make it easier
-      </div>
-      <div className="flex flex-row gap-6">
-        <Link href="/compatibility-checker">/compatibility-checker</Link>
-        <Link href="/things-to-know">/things-to-know</Link>
+      <div className="flex w-1/3 flex-row gap-6">
+        <div className="flex w-1/2 flex-grow flex-col items-center justify-between gap-10 rounded border border-neutral-200 p-10 text-center">
+          <p>Easily test JSON Schema compatibility</p>
+          <Link href="/compatibility-checker">/compatibility-checker</Link>
+        </div>
+        <div className="flex w-1/2 flex-grow flex-col items-center justify-between gap-10 rounded border border-neutral-200 p-10 text-center">
+          <p>
+            An article/blog post things I've learned and mistakes and I've made
+            developing schemas so that you don't make those mistakes as well
+          </p>
+          <Link href="/things-to-know">/things-to-know</Link>
+        </div>
       </div>
     </div>
   );
