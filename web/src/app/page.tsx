@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 
 export default function Page() {
   return (
@@ -11,12 +12,21 @@ export default function Page() {
         </div>
         <div className="flex w-1/2 flex-grow flex-col items-center justify-between gap-10 rounded border border-neutral-200 p-10 text-center">
           <p>
-            An article/blog post about things I&apos;ve learned and mistake
-            I&apos;ve made developing schemas so that you don&apos;t make those
-            mistakes as well
+            An article/blog post about things I&apos;ve learned and mistakes
+            I&apos;ve made developing schemas to help prevent you from making
+            those mistakes too
           </p>
           <Link href="/things-to-know">/things-to-know</Link>
         </div>
+      </div>
+      <div className="flex flex-row items-center gap-3">
+        <Image
+          src={"/github-mark-white.svg"}
+          height={30}
+          width={30}
+          alt="GitHub Logo"
+        />
+        <Link href="https://github.com/ethan-stone/schema-hell">Source</Link>
       </div>
     </div>
   );
