@@ -11,8 +11,9 @@ export default function Page() {
         </div>
         <div className="flex w-1/2 flex-grow flex-col items-center justify-between gap-10 rounded border border-neutral-200 p-10 text-center">
           <p>
-            An article/blog post things I've learned and mistakes and I've made
-            developing schemas so that you don't make those mistakes as well
+            An article/blog post things I&apos;ve learned and mistakes and
+            I&apos;ve made developing schemas so that you don&apos;t make those
+            mistakes as well
           </p>
           <Link href="/things-to-know">/things-to-know</Link>
         </div>

@@ -12,7 +12,7 @@ import { jsonParseLinter } from "@codemirror/lang-json";
 
 const linter = jsonParseLinter();
 
-type SelectProps<T extends { id: number; [k: string]: any }> = {
+type SelectProps<T extends { id: number; [k: string]: unknown }> = {
   className?: string;
   data: T[];
   selected: T;
@@ -20,7 +20,7 @@ type SelectProps<T extends { id: number; [k: string]: any }> = {
   onChange: (selected: T) => void;
 };
 
-const Select = <T extends { id: number; [k: string]: any }>(
+const Select = <T extends { id: number; [k: string]: unknown }>(
   props: SelectProps<T>
 ) => {
   const { data, mapOptionDisplayName, selected, onChange, className } = props;
