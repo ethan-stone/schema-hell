@@ -11,7 +11,7 @@ export default async function Page() {
 
   return (
     <div className="flex min-h-screen justify-center bg-neutral-900 py-10">
-      <article className="prose prose-neutral dark:prose-invert">
+      <article className="prose prose-neutral max-w-none w-1/2 dark:prose-invert">
         {html}
       </article>
     </div>
