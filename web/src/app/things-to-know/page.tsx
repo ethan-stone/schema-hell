@@ -10,8 +10,8 @@ export default async function Page() {
   const html = await markdownToHtml(markdown);
 
   return (
-    <div className="flex min-h-screen justify-center bg-neutral-900 py-10">
-      <article className="prose prose-neutral max-w-none w-1/2 dark:prose-invert">
+    <div className="flex min-h-screen justify-center py-10 dark:bg-neutral-900">
+      <article className="prose prose-neutral w-1/2 max-w-none dark:prose-invert">
         {html}
       </article>
     </div>
