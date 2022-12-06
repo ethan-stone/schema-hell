@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 
 export default function Page() {
   return (
@@ -17,6 +18,15 @@ export default function Page() {
           </p>
           <Link href="/things-to-know">/things-to-know</Link>
         </div>
+      </div>
+      <div className="flex flex-row items-center gap-3">
+        <Image
+          src={"/github-mark-white.svg"}
+          height={30}
+          width={30}
+          alt="GitHub Logo"
+        />
+        <Link href="https://github.com/ethan-stone/schema-hell">Source</Link>
       </div>
     </div>
   );
