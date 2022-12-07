@@ -5,7 +5,9 @@
   "scripts": {},
   "dependencies": {
     "@aws-sdk/client-glue": "^3.224.0",
-    "aws-sdk": "^2.1253.0"
+    "aws-sdk": "^2.1253.0",
+    "pino": "^8.7.0",
+    "zod": "^3.19.1"
   },
   "devDependencies": {
     "@types/aws-lambda": "^8.10.108"

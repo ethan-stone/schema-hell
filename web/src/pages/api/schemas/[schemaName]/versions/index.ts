@@ -8,6 +8,7 @@ import type {
   ValidationErrorRes,
 } from "../../../../../utils/res-errors";
 import { schemaRegistry } from "../../../../../utils/schema-registry";
+import { sqs } from "../../../../../utils/sqs";
 import { env } from "../../../../../env/server.mjs";
 
 export type Query = {
@@ -82,7 +83,26 @@ async function handler(
 
   // return result
   log.info(`Schema version with ID: ${result.data.versionId} created`);
-  return res.status(200).json(result.data);
+
+  res.status(200).json(result.data);
+
+  const sendResult = await sqs.sendRegisteredSchema(env.QUEUE_URL, {
+    registryName: env.SCHEMA_REGISTRY_NAME,
+    schemaName,
+    versionId: result.data.versionId,
+    versionNumber: result.data.versionNumber,
+  });
+
+  if (!sendResult.success) {
+    log.error(`Failed to send registered schema message`, {
+      reason: sendResult.reason,
+    });
+    return;
+  }
+
+  log.info(`Successfully sent registered schema message`, {
+    message: sendResult.data,
+  });
 }
 
 export default withLogger(handler);
