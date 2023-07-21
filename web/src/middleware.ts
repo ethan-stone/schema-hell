@@ -18,6 +18,7 @@ async function middleware(
   event: NextFetchEvent
 ): Promise<Response | undefined> {
   const { log } = req;
+  log.info('request', req)
 
   const ip = req.ip ?? "127.0.0.1";
 
